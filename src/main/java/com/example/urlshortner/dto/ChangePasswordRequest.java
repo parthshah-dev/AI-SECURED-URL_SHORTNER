@@ -1,0 +1,23 @@
+package com.example.urlshortner.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.*;
+
+/**
+ * Request payload for changing user password.
+ */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ChangePasswordRequest {
+
+    @NotBlank(message = "Old password is required")
+    private String oldPassword;
+
+    @NotBlank(message = "New password is required")
+    @Size(min = 8, message = "New password must be at least 8 characters long")
+    private String newPassword;
+}
