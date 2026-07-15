@@ -44,6 +44,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/{shortCode}").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->

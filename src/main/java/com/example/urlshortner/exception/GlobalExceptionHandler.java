@@ -19,6 +19,36 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(AliasAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleAliasAlreadyExists(AliasAlreadyExistsException ex) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Alias Already Exists", ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(UrlNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUrlNotFound(UrlNotFoundException ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "URL Not Found", ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(InvalidURLException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidURL(InvalidURLException ex) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Invalid URL", ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(ExpiredURLException.class)
+    public ResponseEntity<ErrorResponse> handleExpiredURL(ExpiredURLException ex) {
+        return buildErrorResponse(HttpStatus.GONE, "URL Expired", ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(InactiveUrlException.class)
+    public ResponseEntity<ErrorResponse> handleInactiveURL(InactiveUrlException ex) {
+        return buildErrorResponse(HttpStatus.GONE, "URL Inactive", ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(UnauthorizedURLException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedURL(UnauthorizedURLException ex) {
+        return buildErrorResponse(HttpStatus.FORBIDDEN, "Forbidden", ex.getMessage(), null);
+    }
+
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Email Already Exists", ex.getMessage(), null);
