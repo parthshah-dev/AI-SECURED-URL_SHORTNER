@@ -5,6 +5,7 @@ import Input from '../forms/Input';
 import Button from '../ui/Button';
 import { urlService } from '../../services/urlService';
 import toast from 'react-hot-toast';
+import { Link2, Tag, FileText, Calendar } from 'lucide-react';
 
 const UrlFormModal = ({ isOpen, onClose, onSuccess, initialData = null }) => {
   const isEditing = !!initialData;
@@ -60,8 +61,9 @@ const UrlFormModal = ({ isOpen, onClose, onSuccess, initialData = null }) => {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input
           id="originalUrl"
-          label="Original URL *"
+          label="Destination URL *"
           placeholder="https://example.com/very/long/path"
+          icon={Link2}
           {...register('originalUrl', { 
             required: 'Original URL is required',
             pattern: {
@@ -77,6 +79,7 @@ const UrlFormModal = ({ isOpen, onClose, onSuccess, initialData = null }) => {
             id="customAlias"
             label="Custom Alias (Optional)"
             placeholder="my-custom-link"
+            icon={Tag}
             {...register('customAlias', {
               maxLength: { value: 30, message: 'Max 30 characters' },
               pattern: {
@@ -94,6 +97,7 @@ const UrlFormModal = ({ isOpen, onClose, onSuccess, initialData = null }) => {
               id="title"
               label="Title (Optional)"
               placeholder="My Link Title"
+              icon={FileText}
               {...register('title', {
                 maxLength: { value: 255, message: 'Max 255 characters' }
               })}
@@ -101,19 +105,20 @@ const UrlFormModal = ({ isOpen, onClose, onSuccess, initialData = null }) => {
             />
             
             <div className="mb-4">
-              <label htmlFor="description" className="block text-sm font-medium text-neutral-700 mb-1">
+              <label htmlFor="description" className="block text-sm font-medium text-neutral-700 mb-1.5">
                 Description (Optional)
               </label>
               <textarea
                 id="description"
                 rows="3"
-                className="input-field h-auto py-2"
+                className="input-field h-auto py-2.5 resize-none"
+                placeholder="Add a description for this link..."
                 {...register('description', {
                   maxLength: { value: 1000, message: 'Max 1000 characters' }
                 })}
               ></textarea>
               {errors.description && (
-                <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+                <p className="mt-1.5 text-sm text-red-500">{errors.description.message}</p>
               )}
             </div>
           </>
@@ -123,15 +128,16 @@ const UrlFormModal = ({ isOpen, onClose, onSuccess, initialData = null }) => {
           id="expiryDate"
           label="Expiry Date (Optional)"
           type="datetime-local"
+          icon={Calendar}
           {...register('expiryDate')}
           error={errors.expiryDate?.message}
         />
 
-        <div className="pt-4 flex justify-end space-x-3">
+        <div className="pt-4 flex justify-end gap-3 border-t border-neutral-100">
           <Button variant="ghost" onClick={onClose} disabled={loading}>
             Cancel
           </Button>
-          <Button type="submit" isLoading={loading}>
+          <Button type="submit" variant="gradient" isLoading={loading}>
             {isEditing ? 'Save Changes' : 'Create URL'}
           </Button>
         </div>

@@ -14,17 +14,29 @@ function App() {
           toastOptions={{
             duration: 4000,
             style: {
-              background: '#334155',
-              color: '#fff',
+              background: '#1e293b',
+              color: '#f8fafc',
+              borderRadius: '12px',
+              fontSize: '14px',
+              padding: '12px 16px',
+              boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1)',
             },
             success: {
               style: {
                 background: '#059669',
               },
+              iconTheme: {
+                primary: '#fff',
+                secondary: '#059669',
+              },
             },
             error: {
               style: {
                 background: '#dc2626',
+              },
+              iconTheme: {
+                primary: '#fff',
+                secondary: '#dc2626',
               },
             },
           }}

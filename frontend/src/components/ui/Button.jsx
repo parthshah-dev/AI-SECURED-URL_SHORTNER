@@ -1,15 +1,16 @@
 import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Button = ({
   children,
   type = 'button',
   variant = 'primary',
+  size = 'md',
   className = '',
   isLoading = false,
   disabled = false,
-  icon = null,
+  icon: Icon = null,
   onClick,
   ...props
 }) => {
@@ -19,26 +20,38 @@ const Button = ({
     secondary: 'btn-secondary',
     ghost: 'btn-ghost',
     danger: 'btn-danger',
+    outline: 'btn-outline',
+    gradient: 'btn-gradient',
+  };
+
+  const sizeClasses = {
+    sm: 'px-3 py-1.5 text-xs',
+    md: 'px-4 py-2.5 text-sm',
+    lg: 'px-6 py-3 text-base',
   };
 
   const selectedVariant = variantClasses[variant] || variantClasses.primary;
+  const selectedSize = sizeClasses[size] || sizeClasses.md;
 
   return (
-    <button
+    <motion.button
       type={type}
-      className={`${baseClasses} ${selectedVariant} px-4 py-2 ${className}`}
+      className={`${baseClasses} ${selectedVariant} ${selectedSize} ${className}`}
       disabled={isLoading || disabled}
       onClick={onClick}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.15 }}
       {...props}
     >
       {isLoading && (
-        <FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" />
+        <Loader2 className="w-4 h-4 animate-spin mr-2" />
       )}
-      {!isLoading && icon && (
-        <FontAwesomeIcon icon={icon} className="mr-2" />
+      {!isLoading && Icon && (
+        <Icon className="w-4 h-4 mr-2" />
       )}
       {children}
-    </button>
+    </motion.button>
   );
 };
 

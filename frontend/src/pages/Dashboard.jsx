@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLink, faCheckCircle, faClock, faChartLine, faMousePointer, faCalendarDay } from '@fortawesome/free-solid-svg-icons';
+import { Link } from 'react-router-dom';
+import { Link2, CheckCircle, Clock, BarChart3, Plus, ArrowUpRight, ExternalLink } from 'lucide-react';
+import { motion } from 'framer-motion';
 import StatCard from '../components/dashboard/StatCard';
 import Loader from '../components/common/Loader';
+import PageHeader from '../components/ui/PageHeader';
+import EmptyState from '../components/ui/EmptyState';
+import Button from '../components/ui/Button';
+import { useAuth } from '../context/AuthContext';
 import { dashboardService } from '../services/dashboardService';
 import { analyticsService } from '../services/analyticsService';
 import toast from 'react-hot-toast';
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ totalUrls: 0, activeUrls: 0, expiredUrls: 0 });
   const [recentAnalytics, setRecentAnalytics] = useState([]);
@@ -36,86 +42,114 @@ const Dashboard = () => {
   if (loading) return <Loader fullScreen={false} />;
 
   return (
-    <div className="space-y-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-neutral-900">Dashboard</h1>
-        <p className="text-neutral-500 mt-1">Overview of your shortened URLs performance.</p>
-      </div>
+    <div className="space-y-8">
+      {/* Welcome + Create */}
+      <PageHeader
+        title={`Hello, ${user?.name || 'there'}! 👋`}
+        subtitle="Here's what's happening with your links today."
+      >
+        <Link to="/urls">
+          <Button icon={Plus} variant="gradient">
+            Create New URL
+          </Button>
+        </Link>
+      </PageHeader>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         <StatCard 
           title="Total URLs" 
           value={stats.totalUrls} 
-          icon={faLink} 
-          color="primary" 
+          icon={Link2} 
+          color="primary"
+          subtitle="All time"
         />
         <StatCard 
           title="Active URLs" 
           value={stats.activeUrls} 
-          icon={faCheckCircle} 
-          color="success" 
+          icon={CheckCircle} 
+          color="success"
+          subtitle="Currently active"
         />
         <StatCard 
           title="Expired URLs" 
           value={stats.expiredUrls} 
-          icon={faClock} 
-          color="warning" 
+          icon={Clock} 
+          color="danger"
+          subtitle="No longer active"
         />
       </div>
 
-      <div className="mt-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-neutral-900">Recent URL Activity</h2>
+      {/* Recent URLs Table */}
+      <motion.div
+        className="card overflow-hidden"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
+          <h2 className="text-base font-semibold text-neutral-900">Recent URLs</h2>
+          <Link to="/urls" className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1 transition-colors">
+            View All <ArrowUpRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
         
-        <div className="card overflow-hidden">
-          {recentAnalytics.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-neutral-200">
-                <thead className="bg-neutral-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Short URL</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Original URL</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      <FontAwesomeIcon icon={faMousePointer} className="mr-1" /> Total Clicks
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      <FontAwesomeIcon icon={faCalendarDay} className="mr-1" /> Today
-                    </th>
+        {recentAnalytics.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="table-modern">
+              <thead>
+                <tr>
+                  <th>Short Code</th>
+                  <th>Original URL</th>
+                  <th>Total Clicks</th>
+                  <th>Status</th>
+                  <th>Created At</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentAnalytics.map((item) => (
+                  <tr key={item.urlId}>
+                    <td>
+                      <span className="text-sm font-semibold text-primary-600">/{item.shortCode}</span>
+                    </td>
+                    <td>
+                      <div className="text-sm text-neutral-600 max-w-xs truncate flex items-center gap-1.5" title={item.originalUrl}>
+                        {item.originalUrl}
+                        <ExternalLink className="w-3 h-3 text-neutral-400 flex-shrink-0" />
+                      </div>
+                    </td>
+                    <td>
+                      <span className="text-sm font-semibold text-neutral-800">{item.totalClicks}</span>
+                    </td>
+                    <td>
+                      <span className={`badge ${item.active !== false ? 'badge-active' : 'badge-expired'}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${item.active !== false ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+                        {item.active !== false ? 'Active' : 'Expired'}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="text-sm text-neutral-500">
+                        {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                      </span>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-neutral-200">
-                  {recentAnalytics.map((item) => (
-                    <tr key={item.urlId} className="hover:bg-neutral-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-medium text-primary-600">/{item.shortCode}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-neutral-900 max-w-xs truncate" title={item.originalUrl}>
-                          {item.originalUrl}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
-                        {item.totalClicks}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
-                        {item.todayClicks}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="p-8 text-center text-neutral-500">
-              <div className="mx-auto w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mb-4">
-                <FontAwesomeIcon icon={faChartLine} className="text-2xl text-neutral-400" />
-              </div>
-              <p>No analytics data available yet. Create a URL to get started!</p>
-            </div>
-          )}
-        </div>
-      </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <EmptyState
+            icon={BarChart3}
+            title="No activity yet"
+            description="Create a URL to get started and see your analytics here!"
+            action={
+              <Link to="/urls">
+                <Button icon={Plus}>Create your first URL</Button>
+              </Link>
+            }
+          />
+        )}
+      </motion.div>
     </div>
   );
 };

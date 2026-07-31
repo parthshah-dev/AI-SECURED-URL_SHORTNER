@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChartBar, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { BarChart3, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { motion } from 'framer-motion';
 import Loader from '../components/common/Loader';
 import Button from '../components/ui/Button';
+import PageHeader from '../components/ui/PageHeader';
+import EmptyState from '../components/ui/EmptyState';
+import Badge from '../components/ui/Badge';
 import { analyticsService } from '../services/analyticsService';
 import toast from 'react-hot-toast';
 
@@ -30,16 +33,38 @@ const Analytics = () => {
     fetchAnalytics();
   }, [page]);
 
+  // Generate visible page numbers
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let start = Math.max(0, page - Math.floor(maxVisible / 2));
+    let end = Math.min(totalPages, start + maxVisible);
+    
+    if (end - start < maxVisible) {
+      start = Math.max(0, end - maxVisible);
+    }
+
+    for (let i = start; i < end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
   return (
     <div className="space-y-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-neutral-900">Analytics</h1>
-        <p className="text-neutral-500 mt-1">Detailed performance metrics for your links.</p>
-      </div>
+      <PageHeader
+        title="Analytics"
+        subtitle="Track the performance of your short links."
+      />
 
-      <div className="card overflow-hidden">
-        <div className="p-4 border-b border-neutral-200 bg-neutral-50 flex items-center">
-          <FontAwesomeIcon icon={faChartBar} className="text-primary-600 mr-2" />
+      <motion.div
+        className="card overflow-hidden"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="px-6 py-4 border-b border-neutral-100 flex items-center gap-2">
+          <BarChart3 className="w-5 h-5 text-primary-600" />
           <h2 className="font-semibold text-neutral-800">All Links Performance</h2>
         </div>
         
@@ -48,31 +73,32 @@ const Analytics = () => {
         ) : analytics.length > 0 ? (
           <>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-neutral-200">
-                <thead className="bg-neutral-50">
+              <table className="table-modern">
+                <thead>
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Short Link</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Original URL</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Total Clicks</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Today's Clicks</th>
+                    <th>Short Code</th>
+                    <th>Original URL</th>
+                    <th>Total Clicks</th>
+                    <th>Today's Clicks</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-neutral-200">
+                <tbody>
                   {analytics.map((item) => (
-                    <tr key={item.urlId} className="hover:bg-neutral-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="font-medium text-primary-600">/{item.shortCode}</span>
+                    <tr key={item.urlId}>
+                      <td>
+                        <span className="font-semibold text-primary-600 text-sm">/{item.shortCode}</span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-neutral-900 max-w-xs truncate" title={item.originalUrl}>
+                      <td>
+                        <div className="text-sm text-neutral-600 max-w-xs truncate flex items-center gap-1.5" title={item.originalUrl}>
                           {item.originalUrl}
+                          <ExternalLink className="w-3 h-3 text-neutral-400 flex-shrink-0" />
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-neutral-700">
-                        {item.totalClicks}
+                      <td>
+                        <span className="text-sm font-bold text-neutral-800">{item.totalClicks}</span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-neutral-700">
-                        {item.todayClicks}
+                      <td>
+                        <span className="text-sm font-bold text-neutral-800">{item.todayClicks}</span>
                       </td>
                     </tr>
                   ))}
@@ -80,37 +106,67 @@ const Analytics = () => {
               </table>
             </div>
             
-            {/* Pagination Controls */}
+            {/* Pagination */}
             {totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-neutral-200 flex items-center justify-between">
+              <div className="px-6 py-4 border-t border-neutral-100 flex items-center justify-between">
                 <span className="text-sm text-neutral-500">
                   Page {page + 1} of {totalPages}
                 </span>
-                <div className="space-x-2">
-                  <Button 
-                    variant="secondary" 
+                <div className="flex items-center gap-1">
+                  <button
                     onClick={() => setPage(p => Math.max(0, p - 1))}
                     disabled={page === 0}
+                    className="p-2 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 disabled:opacity-40 disabled:pointer-events-none transition-all"
                   >
-                    <FontAwesomeIcon icon={faChevronLeft} className="mr-1" /> Prev
-                  </Button>
-                  <Button 
-                    variant="secondary" 
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  
+                  {getPageNumbers().map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      onClick={() => setPage(pageNum)}
+                      className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
+                        pageNum === page
+                          ? 'bg-primary-600 text-white shadow-sm'
+                          : 'text-neutral-600 hover:bg-neutral-100'
+                      }`}
+                    >
+                      {pageNum + 1}
+                    </button>
+                  ))}
+                  
+                  {totalPages > 5 && page < totalPages - 3 && (
+                    <span className="px-1 text-neutral-400">…</span>
+                  )}
+                  
+                  {totalPages > 5 && page < totalPages - 3 && (
+                    <button
+                      onClick={() => setPage(totalPages - 1)}
+                      className="w-9 h-9 rounded-lg text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition-all"
+                    >
+                      {totalPages}
+                    </button>
+                  )}
+
+                  <button
                     onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                     disabled={page === totalPages - 1}
+                    className="p-2 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 disabled:opacity-40 disabled:pointer-events-none transition-all"
                   >
-                    Next <FontAwesomeIcon icon={faChevronRight} className="ml-1" />
-                  </Button>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             )}
           </>
         ) : (
-          <div className="py-16 text-center text-neutral-500">
-            <p>No analytics data available.</p>
-          </div>
+          <EmptyState
+            icon={BarChart3}
+            title="No analytics data"
+            description="Start creating and sharing URLs to see analytics here."
+          />
         )}
-      </div>
+      </motion.div>
     </div>
   );
 };

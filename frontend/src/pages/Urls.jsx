@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faSearch, faCopy, faQrcode, faEdit, faTrash, faBan, faCheckCircle, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import { Plus, Search, Copy, QrCode, Pencil, Trash2, Ban, CheckCircle, ExternalLink } from 'lucide-react';
+import { motion } from 'framer-motion';
 import Button from '../components/ui/Button';
 import Loader from '../components/common/Loader';
+import Badge from '../components/ui/Badge';
+import EmptyState from '../components/ui/EmptyState';
+import PageHeader from '../components/ui/PageHeader';
 import UrlFormModal from '../components/forms/UrlFormModal';
 import QRCodeModal from '../components/ui/QRCodeModal';
 import { urlService } from '../services/urlService';
@@ -87,28 +90,30 @@ const Urls = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-900">My URLs</h1>
-          <p className="text-neutral-500 mt-1">Manage all your shortened links.</p>
-        </div>
+      <PageHeader title="My URLs" subtitle="Manage all your shortened links.">
         <Button 
-          icon={faPlus} 
+          icon={Plus}
+          variant="gradient"
           onClick={() => { setEditingUrl(null); setIsFormOpen(true); }}
         >
           Create New URL
         </Button>
-      </div>
+      </PageHeader>
 
-      <div className="card overflow-hidden">
-        <div className="p-4 border-b border-neutral-200 bg-neutral-50">
+      {/* Table Card */}
+      <motion.div
+        className="card overflow-hidden"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        {/* Search Bar */}
+        <div className="p-4 border-b border-neutral-100">
           <div className="relative max-w-md">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FontAwesomeIcon icon={faSearch} className="text-neutral-400" />
-            </div>
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
             <input
               type="text"
-              placeholder="Search by alias, original URL..."
+              placeholder="Search by code, title or URL..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input-field pl-10"
@@ -120,56 +125,81 @@ const Urls = () => {
           <div className="py-12"><Loader /></div>
         ) : urls.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-neutral-200">
-              <thead className="bg-neutral-50">
+            <table className="table-modern">
+              <thead>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Short Link</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Original URL</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Clicks</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">Actions</th>
+                  <th>Short Code</th>
+                  <th>Title</th>
+                  <th>Original URL</th>
+                  <th>Total Clicks</th>
+                  <th>Status</th>
+                  <th className="text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-neutral-200">
+              <tbody>
                 {urls.map((url) => (
-                  <tr key={url.id} className="hover:bg-neutral-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-2">
-                        <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-primary-600 hover:underline">
+                  <tr key={url.id}>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary-600 hover:text-primary-700 text-sm transition-colors">
                           /{url.shortCode}
                         </a>
-                        <button onClick={() => handleCopy(url.shortUrl)} className="text-neutral-400 hover:text-neutral-700" title="Copy">
-                          <FontAwesomeIcon icon={faCopy} />
+                        <button
+                          onClick={() => handleCopy(url.shortUrl)}
+                          className="p-1 rounded-md text-neutral-400 hover:text-primary-600 hover:bg-primary-50 transition-all"
+                          title="Copy short URL"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                      {url.title && <div className="text-xs text-neutral-500 mt-1">{url.title}</div>}
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-neutral-900 max-w-xs truncate" title={url.originalUrl}>
+                    <td>
+                      <span className="text-sm text-neutral-600">{url.title || '—'}</span>
+                    </td>
+                    <td>
+                      <div className="text-sm text-neutral-600 max-w-[200px] truncate flex items-center gap-1" title={url.originalUrl}>
                         {url.originalUrl}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${url.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    <td>
+                      <span className="text-sm font-semibold text-neutral-800">{url.clickCount}</span>
+                    </td>
+                    <td>
+                      <Badge variant={url.isActive ? 'active' : 'inactive'}>
                         {url.isActive ? 'Active' : 'Inactive'}
-                      </span>
+                      </Badge>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
-                      {url.clickCount}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-                      <button onClick={() => openQRModal(url.shortCode)} className="text-neutral-500 hover:text-primary-600" title="QR Code">
-                        <FontAwesomeIcon icon={faQrcode} />
-                      </button>
-                      <button onClick={() => openEditModal(url)} className="text-neutral-500 hover:text-blue-600" title="Edit">
-                        <FontAwesomeIcon icon={faEdit} />
-                      </button>
-                      <button onClick={() => handleToggleStatus(url.id, url.isActive)} className="text-neutral-500 hover:text-orange-600" title={url.isActive ? "Deactivate" : "Activate"}>
-                        <FontAwesomeIcon icon={url.isActive ? faBan : faCheckCircle} />
-                      </button>
-                      <button onClick={() => handleDelete(url.id)} className="text-neutral-500 hover:text-red-600" title="Delete">
-                        <FontAwesomeIcon icon={faTrash} />
-                      </button>
+                    <td>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => openQRModal(url.shortCode)}
+                          className="p-2 rounded-lg text-neutral-400 hover:text-primary-600 hover:bg-primary-50 transition-all"
+                          title="QR Code"
+                        >
+                          <QrCode className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => openEditModal(url)}
+                          className="p-2 rounded-lg text-neutral-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                          title="Edit"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleToggleStatus(url.id, url.isActive)}
+                          className="p-2 rounded-lg text-neutral-400 hover:text-amber-600 hover:bg-amber-50 transition-all"
+                          title={url.isActive ? 'Deactivate' : 'Activate'}
+                        >
+                          {url.isActive ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(url.id)}
+                          className="p-2 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -177,16 +207,20 @@ const Urls = () => {
             </table>
           </div>
         ) : (
-          <div className="py-16 text-center text-neutral-500">
-            <p>No URLs found.</p>
-            {!searchQuery && (
-              <Button className="mt-4" onClick={() => { setEditingUrl(null); setIsFormOpen(true); }}>
-                Create your first URL
-              </Button>
-            )}
-          </div>
+          <EmptyState
+            icon={Search}
+            title={searchQuery ? 'No results found' : 'No URLs yet'}
+            description={searchQuery ? 'Try a different search term.' : 'Create your first short URL to get started.'}
+            action={
+              !searchQuery && (
+                <Button icon={Plus} onClick={() => { setEditingUrl(null); setIsFormOpen(true); }}>
+                  Create your first URL
+                </Button>
+              )
+            }
+          />
         )}
-      </div>
+      </motion.div>
 
       <UrlFormModal 
         isOpen={isFormOpen} 
