@@ -5,6 +5,7 @@ import com.example.urlshortner.service.AnalyticsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class AnalyticsController {
 
     @GetMapping
     @Operation(summary = "Get dashboard analytics", description = "Retrieves paginated analytics representing total and today's clicks for all URLs owned by the user.")
-    public ResponseEntity<Page<AnalyticsResponse>> getDashboardAnalytics(Pageable pageable) {
+    public ResponseEntity<Page<AnalyticsResponse>> getDashboardAnalytics(@ParameterObject Pageable pageable) {
         Page<AnalyticsResponse> response = analyticsService.getDashboardAnalytics(pageable);
         return ResponseEntity.ok(response);
     }

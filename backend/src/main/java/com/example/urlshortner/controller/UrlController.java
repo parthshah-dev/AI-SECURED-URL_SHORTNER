@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,7 +72,7 @@ public class UrlController {
     
     @GetMapping
     @Operation(summary = "View my URLs", description = "Retrieves all short URLs owned by the currently authenticated user.")
-    public ResponseEntity<List<UrlResponse>> getMyUrls(Sort sort) {
+    public ResponseEntity<List<UrlResponse>> getMyUrls(@ParameterObject Sort sort) {
         List<UrlResponse> response = urlService.getMyUrls(sort);
         return ResponseEntity.ok(response);
     }
